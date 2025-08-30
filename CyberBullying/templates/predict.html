@@ -1,131 +1,228 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyberbullying Message Detection</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Roboto:wght@300&display=swap');
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BERTShield: Cyberbullying Detector</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;500;700&display=swap');
 
-        body {
-            font-family: 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #f06, #f9a);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: #fff;
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            max-width: 600px;
-            width: 90%;
-        }
-        h1 {
-            font-family: 'Pacifico', cursive;
-            font-size: 3em;
-            margin-bottom: 10px;
-            color: #333;
-        }
-        p.subtitle {
-            font-size: 1.3em;
-            margin-bottom: 20px;
-            color: #555;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-        label {
-            margin-bottom: 10px;
-            font-size: 1.2em;
-            color: #333;
-        }
-        textarea {
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid #f06;
-            font-size: 1em;
-            resize: none;
-            margin-bottom: 20px;
-            height: 120px;
-            background: rgba(255, 255, 255, 0.7);
-        }
-        input[type="submit"] {
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            background-color: #28a745;
-            color: white;
-            font-size: 1.2em;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.3s;
-        }
-        input[type="submit"]:hover {
-            background-color: #218838;
-            transform: scale(1.05);
-        }
-        .result {
-            margin-top: 20px;
-            padding: 20px;
-            border-radius: 15px;
-            background-color: #f8f9fa;
-            text-align: left;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-        }
-        .result h2{
-            color: #333;
-        }
-        .result p {
-            margin: 10px 0;
-            font-size: 1.2em;
-            color: #333;
-        }
-        .danger {
-            border-left: 10px solid #dc3545;
-            background-color: rgba(255, 0, 0, 0.1);
-        }
-        .normal {
-            border-left: 10px solid #28a745;
-            background-color: rgba(0, 255, 0, 0.1);
-        }
-        .emoji {
-            font-size: 2em;
-            vertical-align: middle;
-        }
-    </style>
+    :root {
+      --blue-50: #eef5ff;
+      --blue-100: #d9e7ff;
+      --blue-200: #bcd3ff;
+      --blue-400: #6aa8ff;
+      --blue-600: #1d6fe8;
+      --blue-800: #0a3d91;
+      --ink: #0f172a;
+
+      /* Dial colors */
+      --safe-green: #28a745;     /* Active Safe */
+      --danger-red: #dc3545;     /* Active Danger */
+      --inactive-green: #b9e2c3; /* Softer green */
+      --inactive-red: #f1b6bd;   /* Softer red */
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, var(--blue-50), var(--blue-200));
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink);
+    }
+
+    .container {
+      background: #fff;
+      padding: 20px; /* reduced */
+      border-radius: 16px;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, .12);
+      text-align: center;
+      max-width: 600px;
+      width: 92%;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.8rem; /* reduced */
+      color: var(--blue-800);
+      font-weight: 700;
+    }
+
+    .subtitle {
+      margin: 0 0 14px;
+      color: #445;
+      font-weight: 500;
+      font-size: 1rem;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px; /* tighter */
+    }
+
+    textarea {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 2px solid var(--blue-400);
+      background: #f0f7ff;
+      height: 90px; /* reduced */
+      resize: none;
+      font-size: 0.95rem;
+    }
+
+    input[type="submit"] {
+      padding: 12px 14px;
+      border: none;
+      border-radius: 10px;
+      background: var(--blue-600);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .25s, background .25s;
+    }
+
+    input[type="submit"]:hover {
+      background: var(--blue-800);
+      transform: scale(1.03);
+    }
+
+    .result {
+      margin-top: 15px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #f5f9ff;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, .08);
+    }
+
+    .result h2 {
+      color: var(--blue-800);
+      margin: 0 0 6px;
+      font-size: 1.2rem;
+    }
+
+    /* Dial */
+    .dial-wrap {
+      margin: 8px auto 0;
+      width: 260px; /* smaller */
+    }
+
+    .dial-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .needle {
+      transition: transform .8s ease-in-out;
+      transform-origin: 100px 100px;
+    }
+
+    .needle line {
+      stroke: #0a2948;
+      stroke-width: 4;
+    }
+
+    .needle-tip {
+      fill: #0a2948;
+    }
+
+    .hub {
+      fill: #0a2948;
+    }
+
+    /* Labels under dial */
+    .dial-labels {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .label-pill {
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    /* Inactive pills */
+    .label-pill.safe {
+      background: var(--inactive-green);
+      color: #1c4630;
+    }
+
+    .label-pill.danger {
+      background: var(--inactive-red);
+      color: #5a1e24;
+    }
+
+    /* Active states */
+    .label-pill.active.safe {
+      background: var(--safe-green);
+      color: #fff;
+    }
+
+    .label-pill.active.danger {
+      background: var(--danger-red);
+      color: #fff;
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>Cyberbullying Detection</h1>
-        <p class="subtitle">Safety for Girls in the Z-Generation Era</p>
+  <div class="container">
+    <h1>BERTShield: Cyberbullying Detector</h1>
+    <p class="subtitle">Bully or Safe? AI Knows.</p>
 
-        <form method="post">
-            {% csrf_token %}
-            <!-- <label for="text">Enter Message:</label> -->
-            <textarea id="text" name="text" rows="4" cols="50" placeholder="Type the message here...">{{ text|default:'' }}</textarea><br>
-            <input type="submit" value="Predict">
-        </form>
+    <form method="post">
+      {% csrf_token %}
+      <textarea id="text" name="text" placeholder="Type the message here...">{{ text|default:'' }}</textarea>
+      <input type="submit" value="Predict" />
+    </form>
 
-        {% if result %}
-            <div class="result {% if result == 'Dangerous' %}danger{% else %}normal{% endif %}">
-                <h2>Prediction Result</h2>
-                <p><strong>Prediction:</strong> 
-                    {{ result }}
-                    {% if result == 'Dangerous' %}
-                        <span class="emoji">⚠️</span>
-                    {% else %}
-                        <span class="emoji">✅</span>
-                    {% endif %}
-                </p>
-            </div>
-        {% endif %}
+    {% if result %}
+    <div class="result">
+      <h2>Prediction</h2>
+
+      <!-- Dial / Gauge -->
+      <div class="dial-wrap">
+        <svg class="dial-svg" viewBox="0 0 200 110" role="img" aria-label="Cyberbully dial">
+          <!-- SAFE half (left) -->
+          <path d="M10 100 A90 90 0 0 1 100 10"
+            stroke="{% if result != 'Dangerous' %}var(--safe-green){% else %}var(--inactive-green){% endif %}"
+            stroke-width="18" stroke-linecap="round" fill="none" />
+          <!-- DANGEROUS half (right) -->
+          <path d="M100 10 A90 90 0 0 1 190 100"
+            stroke="{% if result == 'Dangerous' %}var(--danger-red){% else %}var(--inactive-red){% endif %}"
+            stroke-width="18" stroke-linecap="round" fill="none" />
+
+          <!-- Needle (hand) -->
+          <g class="needle"
+            style="transform: rotate({% if result == 'Dangerous' %}50deg{% else %}-50deg{% endif %});">
+            <line x1="100" y1="100" x2="100" y2="22"></line>
+            <polygon class="needle-tip" points="96,24 104,24 100,14"></polygon>
+          </g>
+
+          <!-- Center hub -->
+          <circle class="hub" cx="100" cy="100" r="6"></circle>
+        </svg>
+
+        <!-- Labels / highlight active -->
+        <div class="dial-labels">
+          <span class="label-pill safe {% if result != 'Dangerous' %}active{% endif %}">Safe</span>
+          <span class="label-pill danger {% if result == 'Dangerous' %}active{% endif %}">Bully</span>
+        </div>
+      </div>
     </div>
+    {% endif %}
+  </div>
 </body>
+
 </html>
